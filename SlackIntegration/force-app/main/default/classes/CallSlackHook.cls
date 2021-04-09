@@ -1,12 +1,22 @@
 public with sharing class CallSlackHook {
+    
+    /*
+     * Team:
+     * Rivero Emmanuel
+     * Perera Oscar
+     * 
+     * */
 
    @InvocableMethod
-     public static void CalloutSlackAPI(List<Contact> c){
+     public static void calloutslackapi(List<Contact>ContactElements ){
      String text = '';
      String template ='\n Hello {0}, This is a Test.\n LastName: {1},\n Email: {2},\n Phone: {3}';
-     Contact contact = c[0];
+     String body='';
+
      List<String>elements = new List<String>();
-     Map<String,Object>message = new Map<String,Object>();         
+     Map<String,Object>message = new Map<String,Object>();  
+         
+         for(Contact contact : ContactElements){
          if( contact.LastModifiedDate > contact.CreatedDate ){
              elements = getElementsToSerialize(contact);
              text = String.format(template,elements);
@@ -17,11 +27,12 @@ public with sharing class CallSlackHook {
              text+=',\n Status: Record Created ';
          }
           message.put('text',text);
-         String body = JSON.serialize(message);
-         PostSlack(urlapi__c.getInstance().endpoint__c,body,'POST');
+         PostSlack(urlapi__c.getInstance().endpoint__c,JSON.serialize(message),'POST');  
+         }
     }
     
-    public static List<String>getElementsToSerialize(Contact contact){
+	@TestVisible
+    private static List<String>getelementstoserialize(Contact contact){
         List<String>fields = new List<String>();
         fields.add(contact.FirstName);
         fields.add(contact.LastName);
@@ -30,15 +41,22 @@ public with sharing class CallSlackHook {
 		return fields;
     }
 
+    @TestVisible
     @Future(Callout = true)
-    public static void PostSlack(String url,String textBody, String method){
+    private static void postslack(String url,String textBody, String method){
         Http http = new Http();
 		HttpRequest request = new HttpRequest();
         request.setEndpoint(url);
 		request.setMethod(method);
 	    request.setHeader('Content-Type',' application/json');
         request.setBody(textBody);
+        try{
 		HttpResponse response = http.send(request); 
+        }catch(System.CalloutException e){
+            
+        }
     }
+    
+   
 
 }
